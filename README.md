@@ -13,7 +13,7 @@
 
 
 #### :books:<a id="itm2">二、书籍笔记</a>
-* :book:[深入了解Java虚拟机 JVM高级特性与最佳实践](https://github.com/1945883967/java/tree/master/book-01%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA)
+* :book:[深入了解Java虚拟机 JVM高级特性与最佳实践](https://github.com/1945883967/java/tree/master/b-%E4%B9%A6%E7%B1%8D%E7%AC%94%E8%AE%B0/book-01%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA)
 
 
 
