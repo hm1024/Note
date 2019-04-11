@@ -25,5 +25,5 @@
 
 #### :watch:五、经验总结
 
-1. 奇思妙想
+1. [奇思妙想](https://github.com/1945883967/java/tree/master/e-%E7%BB%8F%E9%AA%8C%E6%80%BB%E7%BB%93)
 
