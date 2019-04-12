@@ -1,5 +1,9 @@
 # 奇思妙想part1
 
+1、[接口是不是Object的子类？](#1)
+
+------
+
 1.接口是不是Object的子类?
 
 答：接口是Object的子类
@@ -100,3 +104,9 @@ public class MyDemo {
 jdk：Java Development Kit
 jre：Java Runtime Environment
 jvm：Java Virtual Machine  
+
+5.什么是运行时异常和连接时异常?
+
+* 运行时异常（RuntimeException）也称作未检测的异常（unchecked exception），通俗点来说，**运行时异常就是只要代码不运行到这一行就不会有问题**。RuntimeException是所有可以在运行时抛出的异常的父类。一个方法除要捕获异常外，如果它执行的时候可能会抛出RuntimeException的子类，那么它就不需要用throw语句来声明抛出的异常。 例如：NullPointerException，ArrayIndexOutOfBoundsException，等等 。
+* 连接时异常（也称受检查异常（checked exception））**即使会导致连接时异常的代码放在 一条无法执行到的分支路径上，类加载时（Java的连接过程不在编译阶段，而在类加载阶段）也照样会抛出异常。** 通过throws语句或者try{}cathch{} 语句块来处理检测异常。编译器会分析哪些异常会在执行一个方法或者构造函数的时候抛出。  
+
