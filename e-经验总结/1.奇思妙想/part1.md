@@ -89,4 +89,14 @@ public class MyDemo {
 
 3.静态类
 
-.静态类：我们对嵌套类使用static关键字。static不能用于最外层的类。静态的嵌套类和其它外层的类别无二致，嵌套只是为了方便打包。
+静态类：我们对嵌套类使用static关键字。static不能用于最外层的类。静态的嵌套类和其它外层的类别无二致，嵌套只是为了方便打包。
+
+4.java编译器和java虚拟机的关系？
+
+答：  java的编译器，或者说jdk，是用来将源码编译成class字节码的，是java的开发环境；虚拟机就是装有jre的可以运行class字节码的东东，可以是手机、电脑、和其他，只要能安装上java的运行环境jre，就能在其上面运行class，这就构成了一个jvm，java虚拟机，是java的运行环境！！
+
+另外，两者分开的，但是jdk上自带有jre，因为要开发java的话是必须有jdk和jre的；如果纯粹只要能运行java程序的话，就只要安装jre就好了！！
+
+jdk：Java Development Kit
+jre：Java Runtime Environment
+jvm：Java Virtual Machine  
