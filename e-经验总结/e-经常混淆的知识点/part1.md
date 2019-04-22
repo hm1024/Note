@@ -107,7 +107,7 @@ jvm：Java Virtual Machine
 
 ### 6-importstatic和import的区别
 
-### 7-java中的equals（）方法与==的区别
+### 7-java中的equals方法与==的区别
 
 equals方法时java.lang.Object类的方法。
 
