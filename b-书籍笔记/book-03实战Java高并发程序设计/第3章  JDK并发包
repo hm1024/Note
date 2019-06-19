@@ -82,3 +82,151 @@ Condition对象和wait()和notify()方法的作用大致相同。
 
 * wait()和notify()方法是和synchronized关键字一起使用的。
 * Condition对象是与重入锁相关联的。
+
+通过使用ReentrantLock的实例调用方法
+
+```java
+public Condition newCondition() //返回用来与此 Lock 实例一起使用的 Condition 实例。 
+```
+
+生成一个与当前重入锁绑定的Condition实例，利用Condition对象，可以让线程在合适的时间等待，或者在某一特定的时刻得到通知，继续执行。
+
+Condition接口提供的基本方法如下：
+![Snipaste_2019-06-15_21-38-37.jpg](https://i.loli.net/2019/06/15/5d04f4ef3dd0071672.jpg)
+
+### 3.1.3 允许多个线程同时访问：信号量（Semaphore）
+
+信号量为多线程协作提供了更为强大的控制方法。广义上说，信号量是对锁的扩展。无论内部锁synchronized还是重入锁ReentrantLock，一次只允许一个线程访问一个资源，而信号量却可以指定多个线程，同时访问某一资源。信号量主要提供的构造函数：
+
+```java
+public Semaphore(int permits)//创建具有给定的许可数和非公平的公平设置的 Semaphore。
+public Semaphore(int permits,boolean fair)//创建具有给定的许可数和给定的公平设置的Semaphore。 
+```
+
+信号量的主要逻辑方法：
+![Snipaste_2019-06-16_12-19-08.jpg](https://i.loli.net/2019/06/16/5d05c38b128b155597.jpg)
+![Snipaste_2019-06-16_12-19-29.jpg](https://i.loli.net/2019/06/16/5d05c38e7e8d547816.jpg)
+
+### 3.1.4 ReadWriteLock读写锁
+
+ReadWriteLock时JDK5提供的读写分离锁。读写锁可以有效地帮助减少锁竞争，以提升系统性能。读写锁允许多个线程同时读。虽然读与读之前不会发生数据安全问题，但写写操作和读写操作间依然是需要相互等到和持有锁的，因此读写锁有以下访问约束：
+
+* 读-读不互斥：读读之间不阻塞。
+* 读-写互斥：读阻塞写，写也会阻塞读。
+* 写-写互斥：歇歇阻塞。
+
+当系统中读操作次数远远大于写操作时，读写锁就可以发挥做大的功效，提升系统的性能。
+
+### 3.1.5 倒计时器：CountDownLatch
+
+倒计时器常用来控制线程等待，可以让某一个线程等待直到倒计时结束，再开始执行。
+
+CountDownLatch的构造函数就收一个整数作为参数，即当前这个计数器的计数个数。
+
+```java
+public CountDownLatch(int count)
+```
+
+用大白话理解倒计时器：就是倒计数器上的所有线程（检查任务）都完成后,对应的目标线程才可以继续执行。
+
+示意图：
+![Snipaste_2019-06-19_09-21-30.jpg](https://i.loli.net/2019/06/19/5d098e7ca41af98851.jpg)
+
+### 3.1.6 循环栅栏：CyclicBarrier
+
+CyclicBarrier是另外一种多线程并发控制使用工具。和CountDownLatch非常相似，它也可以实现线程间的计数等待，但它的功能比CountDownLatck更加强大。
+
+CyclicBarrier可以立即为循环栅栏。栅栏就是一种障碍物。Java并发中用来阻止线程继续执行，要求线程在栅栏处等待。前面的Cyclic意味循环，也就是说这个计数器可以重复使用。比如，假设我们将计数器设置为10，那么凑齐第一批10个线程后，计数器归零，然后接着凑齐下一批10个线程，这就是循环栅栏内在的含义。
+
+比CountDownLatch强大的是，CyclicBarrier可以接受一个参数为barrierAction（当计数器一次技术完成后，系统会执行的动作），如下构造函数：(其中参数parties表示计数总数，也就是参与的线程数)
+
+```java
+public CyclicBarrier(int parties, Runnable barrierAction)
+```
+
+### 3.1.7线程的阻塞工具类：LockSupport
+
+LockSupport是一个非常方便使用的线程阻塞工具，可以在线程内部任意位置阻塞。
+
+LockSupport的静态方法park()可以阻塞当期线程，类似的还有parknanos()、parkUntil()等方法。它可以实现一个线程等待。
+
+LockSupport使用信号量的机制，它为每一个线程准备了一个许可，如果许可可用，那么park()函数会立即返回，并且消费这个许可（也就是让许可变为不可用），如果许可不可用，就回阻塞。而unpack()则使得一个许可变为可用（但是和信号量不同的是，许可不能累加，你不能拥有超过一个许可，它永远只有一个）。
+
+## 3.2 线程复用：线程池
+
+线程的使用必须掌握一个度，在有限的范围内，增加线程的数量可以明显提高线程的吞吐量，但一旦超出这个范围，大量的线程只会拖垮应用系统。因此，在生产环境中使用线程，必须对其加以控制和管理。盲目的使用大量线程对系统性能是有伤害的。
+
+### 3.2.1 什么是线程池
+
+为了避免系统频繁的创建和销毁线程。可以让创建的线程进行复用。
+
+线程池与数据库连接池类似。在线程池中，总有几个活跃的线程。当你需要使用线程时，可以从池子中随便拿出一个空闲线程，完成工作时，并不急着关闭线程，而是将这个线程退回到池子，方便其他人使用。简而言之：使用线程池后，创建线程编程了从线程池中获取线程，关闭线程变成了向池子中归还线程。
+
+### 3.2.2 不要重复发明轮子：JDK对线程池的支持
+
+为了能更好的控制多线程，JDK提供了一套Executor框架，帮助开发人员有效地进行线程控制，其本质就是一个线程池。它的核心成员如图：
+![Snipaste_2019-06-19_10-08-49.jpg](https://i.loli.net/2019/06/19/5d099938cca7243437.jpg)
+
+以上成员均在Java.util.concurrent包中，是JDK并发包的核心类。其中ThreadPoolExecutor
+![Snipaste_2019-06-19_10-14-40.jpg](https://i.loli.net/2019/06/19/5d099a9d58e4a28562.jpg)
+
+### 3.2.3 刨根问底：核心线程池的内部实现
+
+对于核心的几个线程池，**newFixedThreadPool()**方法、 **newSingleThreadExecutor**()方法还是 
+
+**newCachedThreadPool**()方法，其内部均使用**ThreadPoolExecutor**实现。具体实现如下：
+
+![Snipaste_2019-06-19_11-12-20.jpg](https://i.loli.net/2019/06/19/5d09a821a5ade89571.jpg)
+
+![Snipaste_2019-06-19_11-21-01.jpg](https://i.loli.net/2019/06/19/5d09aa71bf7d161158.jpg)
+![Snipaste_2019-06-19_11-21-55.jpg](https://i.loli.net/2019/06/19/5d09aa72763cd22338.jpg)
+![Snipaste_2019-06-19_11-22-08.jpg](https://i.loli.net/2019/06/19/5d09aa731bf6262325.jpg)
+![Snipaste_2019-06-19_11-27-12.jpg](https://i.loli.net/2019/06/19/5d09ab9997e2175380.jpg)
+
+### 3.2.4 超负载了怎么办：拒绝策略
+
+ThreadPoolEcevutor的最后一个参数指定了拒绝策略。也就是任务数量超过系统实际承载能力时如何处理。拒绝策略可以说时系统超负荷运行的补救措施，通常由于压力太大而引起的，也就是线程池中的线程已经用完了，无法继续为新任务服务，同时，等待队列中也已经排满了，再也塞不下新任务了。这是，可以拒绝策略可以合理处理这个问题。
+
+JDK内置提供了四种拒绝策略，如图：
+
+![Snipaste_2019-06-19_11-35-31.jpg](https://i.loli.net/2019/06/19/5d09ad8d643c495299.jpg)
+
+* **AbortPolicy策略**：该策略会直接抛出异常，阻止系统正常工作。
+* **CallerRunsPolicy策略**：只要线程池未关闭，该策略直接在调用者线程中，运行当前被丢弃的任务。显然这样做不会真的丢弃任务，但是任务提交线程的性能极有可能会急剧下降。
+* **DiscardOldestPolicy策略**：该策略会丢弃最老的一个请求，也就是即将被执行的一个任务，并尝试再次提交前。
+* **DiscardOldestPolicy策略**：该策略默默的丢弃无法处理的任务，不予任何处理。
+
+以上内置的策略均实现**RejectedExecutionHandler**接口，若以上策略任然无法满足实际应用需要，完全可以自己扩展RejectedExecutionHandler接口。RejectedExecutionHandler的定义如下：
+
+```java
+public interface RejectedExecutionHandler {
+    void rejectedExecution(Runnable r, ThreadPoolExecutor executor);
+}
+```
+
+其中r为执行任务，executor为当前的线程池。
+
+### 3.2.5 自定义线程创建：ThreadFactory
+
+线程池中的线程从哪来？ ===>>>**ThreadFacotry**
+
+**ThreadFactory**是一个接口，它只有一个方法，用来创建线程。
+
+```java
+public interface ThreadFactory {
+    Thread newThread(Runnable r);  
+}
+```
+
+当线程池需要新建线程时，就会调用这个方法。
+
+### 3.2.6 我的应用我做主：扩展线程池
+
+**ThreadPoolExecutor**也是一个可以扩展的线程池。它提供了beforeExecutor()、afterExecutor()和terminated()三个接口对线程池进行控制。
+
+在默认的**ThreadPoolExecutor**实现中，提供了空的beforeExecute()和afterExecute()实现。在实际应用中，可以对其进行扩展来实现对线程池运行状态的跟踪，输出一些有用的调试信息。
+
+### 3.2.7 合理的选择：优化线程池线程数量
+
+线程池的大小对系统的性能有一定的影响。过大和过小的线程数量都无法发挥最优的系统性能，
+
