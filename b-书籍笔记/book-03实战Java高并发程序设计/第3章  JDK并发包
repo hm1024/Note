@@ -228,5 +228,76 @@ public interface ThreadFactory {
 
 ### 3.2.7 合理的选择：优化线程池线程数量
 
-线程池的大小对系统的性能有一定的影响。过大和过小的线程数量都无法发挥最优的系统性能，
+线程池的大小对系统的性能有一定的影响。过大和过小的线程数量都无法发挥最优的系统性能，但线程池的大小的确定也不需要太精确，因为只要避免极大和极小两种情况，线程池的大小对系统性能并不会影响太大。
+
+一般来说线程池的大小要考虑CPU的数量、内存大小等因素。在《Java Concurrency in Practice》一书中给出了一个估算线程池大小的经验公式：
+![Snipaste_2019-06-20_09-37-16.jpg](https://i.loli.net/2019/06/20/5d0ae3644663828778.jpg)
+
+在Java中，可以通过：
+
+```java
+Runtime.getRuntime().availableProcessors()
+```
+
+取得可用COU数量。
+
+### 3.2.8 堆栈去哪里了：在线程池中寻找堆栈
+
+线程池的submit()和execute()方法的区别是execute()可以线程池讨回异常堆栈。
+
+以下来两种方式等价：
+
+* pools.execute(new DivTask(100,i));
+
+* Future re = pools.submit(new DivTask(100,i));
+
+  re.get();
+
+### 3.2.9 分而治之：Fork/Join框架
+
+“分而治之”一直是一个非常有效地处理大量数据的方法。
+
+Fork一词的原始含义是吃饭用的叉子，也是分叉的意思。在Linux平台中，函数fork()用来创建子进程，使的系统可以多一个执行分支。在Java中也沿用了类似的命名方式。
+
+join的含义表示等待。也就是使用frok()后系统多了一个执行分支（线程），所以需要等待这个执行分支完毕，才能得到最终的结果，因此join()就表示等待。
+
+在jdk中for()方法并不急着开启线程，而是交给ForkJoinPool线程池处理，以节省系统资源。
+![Snipaste_2019-06-20_10-07-18.jpg](https://i.loli.net/2019/06/20/5d0aea626b3c284781.jpg)
+
+由于线程池的优化，提交的任务和线程数量并不是一对一的关系。在绝大多数情况下，一个物理线程实际上是需要处理多个逻辑任务的。因此，每个线程必然需要拥有一个任务队列。因此，在实际执行过程中，可能遇到这么一种情况：线程A已经把自己的任务都执行完成了，而线程B还有一堆任务等着处理，此时，线程A就会“帮助”线程B，从线程B的任务队列中拿一个任务过来处理，尽可能的达到平衡。如图：
+![Snipaste_2019-06-20_10-11-12.jpg](https://i.loli.net/2019/06/20/5d0aebec2ae3716044.jpg)
+
+注意：当线程帮助别人时，总是从任务队列的底部拿数据，而线程执行自己的任务时，则是从相反的顶部开始拿。因此这种行为十分有利于避免数据竞争。
+
+**ForkJoinPool**的一个重要接口：
+
+![Snipaste_2019-06-20_10-30-41.jpg](https://i.loli.net/2019/06/20/5d0aefe5a9dc477169.jpg)
+![Snipaste_2019-06-20_10-30-51.jpg](https://i.loli.net/2019/06/20/5d0aefe61835554618.jpg)
+
+## 3.3 不要重复发明轮子：JDK的并发容器
+
+### 3.3.1 并发集简介
+
+JDK提供的答这些大部分容器在java.util.concurrent包中。
+
+* **ConcurrentHashMap**:这是一个高效的并发HashMap。可以理解为一个线程安全的HashMap。
+* **CopyOnWriteArrayList**：这是一个List，和ArrayList是一个家族的，在读多写少的场合，这个List的性能非常好，远远好于Vector.
+* **ConcurrentLinkedQueue**:高效的并发队列，使用链表实现。可以看做一个线程安全的LinkedList。
+* **BlockingQueue**:这是一个接口，JDK内部通过链表、数组等方式实现这个接口。表示阻塞队列，非常适合于作为数据共享的通道。
+* **ConcurrentSkipListMap**:跳表的实现。这是一个Map，使用跳表的数据结构进行快速查找。
+
+除了以上并发包专有的数据结构外，java.util下的Vector是线程安全的（虽然性能和上述专用工具没得比），另外Conllection工具类可以帮助我们将任意集合包装成线程安全的集合。
+
+### 3.3.2 线程安全的HashMap
+![Snipaste_2019-06-20_10-55-36.jpg](https://i.loli.net/2019/06/20/5d0af5b440f5840195.jpg)
+
+一个更加专业的并发HashMap是ConcurrentHashMap。它位于java.util.concurrent包内。它专门为并发进行了性能优化，因此更加适合多线程的场合。
+
+### 3.3.3 有关List的线程安全
+
+在Java中，ArrayList和Vector都是使用数组作为其内部实现的。两者最大的不同在于Vector是线程安全的，而ArrayList不是。此外，LinkedList使用链表的数据结构实现了List。但是很不幸，LinkedList并不是线程安全的，不过可以使用Collections.synchronizedList()方(返回指定列表支持的同步（线程安全的）列表)法包装任意List，如下：
+
+```java
+public static List<String> l = Collections.synchronizedList(new LinkedList<String>());
+```
 
