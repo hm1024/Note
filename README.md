@@ -19,7 +19,6 @@
 * :book:[Java编程思想](https://github.com/1945883967/java/tree/master/b-%E4%B9%A6%E7%B1%8D%E7%AC%94%E8%AE%B0/book-04java%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3)
 * :book:[深入剖析Tomcat]()
 * :book:[计算机网络 自顶向下](https://github.com/1945883967/java/tree/master/b-%E4%B9%A6%E7%B1%8D%E7%AC%94%E8%AE%B0/book-08%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%20%E8%87%AA%E9%A1%B6%E5%90%91%E4%B8%8B%E6%96%B9%E6%B3%95)
-* :book:[深入剖析Tomcat]()
 
 #### :triangular_ruler: 三、框架
 
