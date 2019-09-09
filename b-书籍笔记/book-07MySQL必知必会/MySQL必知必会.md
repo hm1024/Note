@@ -229,6 +229,85 @@ MySQL的通配符虽然很有用，但是也是有代价的：通配符搜索的
   ORDER BY prod_name;**
   **[123]** 定义一组字符，他的意思是匹配1或2或3.
 
+## 第十五章 联结表
+
+### 15.1
+
+**外键 （foreign key）**：外键为某个表中的一列，它包含另一个表的主键值，定义了两个表之间的关系。
+
+> 通过外键联结表，可以避免数据重复，改动数据时可以只更新单个表中的记录（如外键所在表中的记录），由于数据无重复，所以数据是一致的（因为数据重复时，修改重复的数据时很容易到时，数据的不一致）。
+
+**可升缩性好（scale)**：能够适应不断增加的工作量而不失败。设计良好的数据库或应用程序称之为**可伸缩性好（scale well）**。
+
+
+
+### 15.2 创建联结
+
+#### 15.2.2 内部联结
+
+**内部联结**也称为**等值联结 (equijoin)**，它是基于两个表之间的相等测试。
+
+写法1：
+
+```sql
+select vend_name,prod_name,prod_price
+from vendors,products
+where vendors.vend_id = products.vend_id;
+```
+
+写法2：
+
+```sql
+select vend_name,prod_name,prod_price
+from venders inner join products
+on vendors.vend_id = products.vend_id;
+```
+
+> **完全限定列名**：在引用的列可能出现二义性时，必须使用完全限定列名（用一个点分隔的表名和列名）。如果引用一个没有用列名限制的具有二义性的列名，MySQL将返回错误。
+
+## 第十六章 创建高级联结
+
+### 16.1 使用表别名
+
+SQL 给表名起别名的两个理由
+
+* 缩短 SQL 语句
+* 允许在单条 SELECT 语句中多次使用相同的列
+
+> 注意：表别名只在查询执行中使用。与列别名不一样，表别名不返回到客户机。
+
+### 16.2 自联结
+
+```sql
+select p1.prod_id,p1.prod_name
+from products as p1,products as p2
+where p1.vend_id = p2.vend_id
+	  and
+	  p2.prod_id = 'DTNTR';
+```
+
+> **使用自联结而不是子查询**：自联结通常作为外部语句用来替代从相同的表中检索数据时使用的子查询语句。虽然最终的结果是相同的，但有时候处理联结远比处理子查询块的多。应该试一试两种方式，以确定哪一种的性能更好。
+
+### 16.3 自然联结
+
+无论何时对表进行联结，应该至少有一个列出现在不止一个表中（被联结的列 ) 。
+
+### 16.4 外部联结
+
+> 许多联结将一个表中的行与另一个表中的行相关联。但有时候需要包含没有关联行的那些行。
+
+**外部联结**：联结包含了那些在相关表中没有关联行的行。
+
+```sql
+select customers.cust_id,orders.order_num
+from customers left outer join orders
+on customers.cust_id = orders.cust_id;
+```
+
+> MySQL 不支持简化字符 \*= 和 =\* 的使用
+
+
+
 
 ## 第十九章 插入数据
 ### 19.1数据插入
@@ -286,6 +365,7 @@ MySQL的通配符虽然很有用，但是也是有代价的：通配符搜索的
      'null',
      'null');**
 
-    * **提高INSERT语句性能**：此技术可以提高数据库的性能，因为MySQL用单条INSERT语句处理多个插入比使用多条INSERT语句快。
+**提高INSERT语句性能**：此技术可以提高数据库的性能，因为MySQL用单条INSERT语句处理多个插入比使用多条INSERT语句快。
+
  ### 19.4插入检索出的数据
  **INSERT SELECT**语句
