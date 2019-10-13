@@ -20,6 +20,8 @@
 
 * **计算机网络**
     + :book:[计算机网络 自顶向下](https://github.com/1945883967/java/tree/master/b-%E4%B9%A6%E7%B1%8D%E7%AC%94%E8%AE%B0/book-08%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%20%E8%87%AA%E9%A1%B6%E5%90%91%E4%B8%8B%E6%96%B9%E6%B3%95)
+* **数据库**
+    + MySQL 必知必会
 
 **To Read：**
 
@@ -27,9 +29,10 @@
 * 码农翻身
 * 程序员代码面试指南 
 
-+ :book:深入剖析Tomcat
++ 深入剖析Tomcat
 + Spring 官方文档、源码
 + Mybatis 官方文档、源码
++ MySQL技术内幕-MySqlInnoDB存储引擎
 #### :triangular_ruler: 三、框架
 
 * **:seedling:[Spring 笔记](https://github.com/1945883967/java/tree/master/c-%E6%A1%86%E6%9E%B6/01Spring)**
