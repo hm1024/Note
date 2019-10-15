@@ -3,7 +3,16 @@
  **@Alias**
 
 + 作用：为JavaBeans起别名。
+
 + 用法：在 JavaBean 类上使用，在括号中指定别名。
+
+  ```java
+  @Alias("author")
+  public class Author {
+      ...
+  }
+  ```
+
 
 **@MappedJdbcTypes**
 
