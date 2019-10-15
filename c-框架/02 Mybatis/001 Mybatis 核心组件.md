@@ -41,8 +41,7 @@ Mybatis的执行流程说明：
 5. 封装 SQL 对象，在这一步，执行器将待处理的 SQL 信息映封住到一个对象中（MappedStatement)该对象包括 SQL 语句、输入参数映射信息（Java 简单类型、HashMap 或 POJO）和输出映射信息（Java 简单类型、HashMap 或 POJO）.
 6. 操作数据库，拥有了执行器和 SQL 信息封装对象就使用它们访问数据库了，最后在返回操作结果，结束流程。
 
-
-**非常重要的一张图-分析代理dao的执行过程**
-![非常重要的一张图-分析代理dao的执行过程.png](https://i.loli.net/2019/10/15/LwE7BOYqsmGpbPo.png)
 **非常重要的一张图-分析编写dao实现类Mybatis的执行过程**
 ![非常重要的一张图-分析编写dao实现类Mybatis的执行过程.png](https://i.loli.net/2019/10/15/839a4pCisRXSKnH.png)
+**非常重要的一张图-分析代理dao的执行过程**
+![非常重要的一张图-分析代理dao的执行过程.png](https://i.loli.net/2019/10/15/LwE7BOYqsmGpbPo.png)
