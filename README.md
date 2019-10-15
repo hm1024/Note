@@ -38,5 +38,5 @@
 * **:seedling:[Spring 笔记](https://github.com/1945883967/java/tree/master/c-%E6%A1%86%E6%9E%B6/01Spring)**
 * **Spring MVC**
 * **Spring Boot**
-* **Mybatis**
+* [**Mybatis**](https://github.com/1945883967/Blog/tree/master/c-%E6%A1%86%E6%9E%B6/02%20Mybatis)
 * **Mybatis Plus**
