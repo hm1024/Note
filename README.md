@@ -25,6 +25,8 @@
 
 **To Read：**
 
+> 去接受一些你不了解的东西，去争取，去相信自己可以改变一些事情。 ------ 《一个人的朝圣》
+
 * Effective Java 3Th
 * 码农翻身
 * 程序员代码面试指南 
@@ -39,7 +41,7 @@
 * **Spring MVC**
 * **Spring Boot**
 * [**Mybatis**](https://github.com/1945883967/Blog/tree/master/c-%E6%A1%86%E6%9E%B6/02%20Mybatis)
-  1. Mybatis 核心组件
-  2. Mybatis中的注解配置汇总
-  3. Mybatis中的 xml 配置汇总
+  - Mybatis 核心组件
+  - Mybatis中的注解配置汇总
+  - Mybatis中的 xml 配置汇总
 * **Mybatis Plus**
