@@ -41,6 +41,8 @@
 `git commit -m "commit message" [file name]`
 // 将暂存区的内容提交到本地库
 
+`git commit --amend`
+
 ### **查看历史记录**
 `git log`
 
@@ -107,12 +109,16 @@ reset 命令的三个参数对比
 
 ### **比较文件差异**
 
-- git diff HEAD -- readme.txt
-   + 将工作区中的文件和暂存区进行比较
-- git diff HEAD -- readme.txt 
-  命令可以查看工作区和版本库里面最新版本的区别
-- git diff [本地库中历史版本][文件名]
+- `git diff HEAD -- readme.txt `
+  命令可以查看工作区和本地库里面最新版本的区别
+
+- `git diff [本地库中历史版本][文件名]`
+
    + n 将工作区中的文件和本地库历史记录比较
+
+- `git diff readme.txt`
+
+   查看工作区和暂存区中文件的的区别
 
 ## 分支管理
 
