@@ -194,6 +194,10 @@ reset 命令的三个参数对比
 
 `git remote add [别名] [远程地址]`
 
+### 删除远程地址
+
+`git remote remove [别名] `
+
 ### **推送**
 `git push [别名] [分支名]`
 
