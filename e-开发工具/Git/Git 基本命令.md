@@ -5,6 +5,9 @@
 `git init`  // 在想让git管理的文件夹执行，该文件夹就称为git本地仓库
 
 ### **设置签名**
+
+`git config --list`查看当前配置
+
 （如果email 与github不一样，push后，github上不会有提交记录，也就是有时候，当我们提交后，不会再显示绿方块）
 
 ```java
