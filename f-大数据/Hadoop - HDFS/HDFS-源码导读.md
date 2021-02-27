@@ -153,3 +153,12 @@ Client 通过RPC 请求可操作 NameNode 节点的元数据，如更改文件�
 
 
 
+## NameNode 实现
+
+### NameNode 文件目录树
+
+NameNode 中的两大对应关系：
+
+* HDFS 目录树、文件 / 目录元信息 和 数据块索引间的对应关系
+* block 和 DataNode 的对应关系
+
