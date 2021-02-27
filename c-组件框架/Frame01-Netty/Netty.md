@@ -56,7 +56,7 @@ I/O 请求可以分为两个阶段，分别为调用阶段和执行阶段。
 
 Netty 的 I/O 模型是基于非阻塞 I/O 实现的，底层依赖的是 JDK NIO 框架的多路复用器 Selector。一个多路复用器 Selector 可以同时轮询多个 Channel，采用 epoll 模式后，只需要一个线程负责 Selector 的轮询，就可以接入成千上万的客户端。
 
-## 编码
+## 编解码
 
 ### 通信协议
 
@@ -268,3 +268,105 @@ LengthFieldBasedFrameDecoder 包含的属性
   ```
 
   > 示例 7 与 示例 6 的区别在于 Length 字段记录了整个报文的长度，包含 Length 自身所占字节、HDR1 、HDR2 以及 Content 字段的长度，解码器需要知道如何进行 lengthAdjustment 调整，才能得到 HDR2 和 Content 的内容
+
+## Buffer  与 内存管理
+
+### Java 堆外内存
+
+**Java 堆外内存**：在使用 Netty 时，需要时刻与堆外内存打交道，堆外内存使用不当会使得应用出错、崩溃的概率变大，所以在使用堆外内存时一定要慎重。
+
+在 Java 中对象都是在堆内分配的，通常我们说的**JVM 内存**也就指的**堆内内存**，**堆内内存**完全被**JVM 虚拟机**所管理，JVM 有自己的垃圾回收算法，对于使用者来说不必关心对象的内存如何回收。
+
+**堆外内存**与堆内内存相对应，对于整个机器内存而言，除**堆内内存以外部分即为堆外内存**，如下图所示。堆外内存不受 JVM 虚拟机管理，直接由操作系统管理。
+
+<img src="images/Netty/image-20210227234423838.png" alt="image-20210227234423838" style="zoom:67%;" />
+
+堆外内存和堆内内存的利弊
+
+1. 堆内内存由 JVM GC 自动回收内存，降低了 Java 用户的使用心智，但是 GC 是需要时间开销成本的，堆外内存由于不受 JVM 管理，所以在一定程度上可以降低 GC 对应用运行时带来的影响。
+2. 堆外内存需要手动释放，这一点跟 C/C++ 很像，稍有不慎就会造成应用程序内存泄漏，当出现内存泄漏问题时排查起来会相对困难。
+3. 当进行网络 I/O 操作、文件读写时，堆内内存都需要转换为堆外内存，然后再与底层设备进行交互，这一点在介绍 writeAndFlush 的工作原理中也有提到，所以直接使用堆外内存可以减少一次内存拷贝。
+4. 堆外内存可以实现进程之间、JVM 多实例之间的数据共享。
+
+#### 堆外内存的分配
+
+Java 中堆外内存的分配方式有两种：**ByteBuffer#allocateDirect**和**Unsafe#allocateMemory**
+
+* 方式一： Java NIO 包中的 ByteBuffer 类的分配方式 **ByteBuffer#allocateDirect**
+
+  ```java
+  // 分配 10M 堆外内存
+  ByteBuffer buffer = ByteBuffer.allocateDirect(10 * 1024 * 1024); 
+  ```
+
+  跟进 ByteBuffer.allocateDirect 源码，发现其中直接调用的 DirectByteBuffer 构造函数：
+
+  ```java
+  DirectByteBuffer(int cap) {
+      super(-1, 0, cap, cap);
+      boolean pa = VM.isDirectMemoryPageAligned();
+      int ps = Bits.pageSize();
+      long size = Math.max(1L, (long)cap + (pa ? ps : 0));
+      Bits.reserveMemory(size, cap);
+      long base = 0;
+      try {
+          base = unsafe.allocateMemory(size);
+      } catch (OutOfMemoryError x) {
+          Bits.unreserveMemory(size, cap);
+          throw x;
+      }
+      unsafe.setMemory(base, size, (byte) 0);
+      if (pa && (base % ps != 0)) {
+          address = base + ps - (base & (ps - 1));
+      } else {
+          address = base;
+      }
+      cleaner = Cleaner.create(this, new Deallocator(base, size, cap));
+      att = null;
+  }
+  ```
+
+  在堆内存放的 DirectByteBuffer 对象并不大，仅仅包含堆外内存的地址、大小等属性，同时还会创建对应的 Cleaner 对象，通过 ByteBuffer 分配的堆外内存不需要手动回收，它可以被 JVM 自动回收。当堆内的 DirectByteBuffer 对象被 GC 回收时，Cleaner 就会用于回收对应的堆外内存。
+
+  <img src="images/Netty/image-20210227235344270.png" alt="image-20210227235344270" style="zoom: 80%;" />
+
+  从 DirectByteBuffer 的构造函数中可以看出，真正分配堆外内存的逻辑还是通过 unsafe.allocateMemory(size)
+
+* 方法二：通过 Unsafe#allocateMemory 分配堆外内存
+
+  Unsafe 是一个非常不安全的类，它用于执行内存访问、分配、修改等敏感操作，可以越过 JVM 限制的加锁。Unsafe 最初并不是为开发者设计的，使用它时虽然可以获取对底层资源的控制权，但也失去了安全性的保证，所以使用 Unsafe 一定要慎重。
+
+  在Java 中是不能直接使用 Unsafe 类的，但是可以通过反射获取 Unsafe 实例，使用方法如下
+
+  ```java
+  private static Unsafe unsafe = null;
+  static {
+      try {
+          Field getUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
+          getUnsafe.setAccessible(true);
+          unsafe = (Unsafe) getUnsafe.get(null);
+      } catch (NoSuchFieldException | IllegalAccessException e) {
+          e.printStackTrace();
+      }
+  }
+  ```
+
+  获得 Unsafe 实例后，我们可以通过 allocateMemory 方法分配堆外内存，allocateMemory 方法返回的是内存地址，使用方法如下所示：
+
+  ```java
+  // 分配 10M 堆外内存
+  long address = unsafe.allocateMemory(10 * 1024 * 1024);
+  ```
+
+  Unsafe#allocateMemory 所分配的内存必须自己手动释放，否则会造成内存泄漏，这也是 Unsafe 不安全的体现。Unsafe 同样提供了内存释放的操作：
+
+  ```java
+  unsafe.freeMemory(address);
+  ```
+
+#### 堆外内存的回收
+
+
+
+
+
