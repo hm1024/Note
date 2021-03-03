@@ -56,7 +56,42 @@ I/O 请求可以分为两个阶段，分别为调用阶段和执行阶段。
 
 Netty 的 I/O 模型是基于非阻塞 I/O 实现的，底层依赖的是 JDK NIO 框架的多路复用器 Selector。一个多路复用器 Selector 可以同时轮询多个 Channel，采用 epoll 模式后，只需要一个线程负责 Selector 的轮询，就可以接入成千上万的客户端。
 
-## 编解码
+## 传输
+
+传输 API 的核心逻辑是 Channel，用于所有的 I/O 操作。每个Channel都会被分配一个 ChannelPipeline 和 ChannelConfig。
+
+ChannelPipeline 持有所有将应用于入站和出栈数据以及事件的ChannelHandler 实例，这些 ChannelHandler 实现了应用程序用于处理状态变化以及数据处理的逻辑。
+
+ChannelHandler 的典型用途：
+
+* 将数据从一种格式转换为另一种格式
+* 提供异常的通知
+* 提供Channel 并为活动的或者非活动的通知
+* 提供当Channel 注册到 EventLoop 或者从 EventLoop 注销时的通知
+* 提供所有用户自定义事件的通知
+
+### Netty 内置的传输
+
+Netty 内置了一些可开箱即用的传输
+
+* **NIO**：使用 java.nio.channels 包作为基础--基于选择器的方式
+* **Epool**：由 JNI 驱动的epool() 和非阻塞 IO，这个传输支持只有在 Linux 上可用的多种特性，如 SO_REUSEPORT，比NIO传输更快，而且完全是非阻塞的。
+* **OIO**：使用 Jave.net 包作为基础——使用阻塞流
+* **Local**：可以在VM内部通过管道进行通信的本地传输
+* **Embedded**：Embedded 传输，允许使用ChannelHander 而又不需要一个正真的基于网络的传输。在测试 ChannelHand而 实例时非常有用
+
+#### NIO 非阻塞 I/O
+
+NIO  提供了一个所以 I/O 操作的全异步的实现。它利用了基于选择器的 API。选择器背后的基本概念是充当一个注册表，在哪里你将可以请求在 Channel 的装填发生变化是得到通知。可能的状态变化有：
+
+* 新的 Channel 已经接受并且就绪
+* Channel 连接已经完成
+* Channel 有已经就绪的可供读取的数据
+* Channel 可用于写数据
+
+选择器运行在一个检查状态变化并且对其做出相应响应的线程上，在应用程序对状态的改变做出响应后，选择器会被重置，并将重复这个过程。
+
+
 
 ### 通信协议
 
@@ -72,7 +107,7 @@ Netty 的 I/O 模型是基于非阻塞 I/O 实现的，底层依赖的是 JDK NI
 
 ![image-20210227153334757](images/Netty/image-20210227153334757.png)
 
-### Netty 中的通信协议
+#### Netty 中的通信协议
 
 ![image-20210227161102754](images/Netty/image-20210227161102754.png)
 
@@ -366,7 +401,9 @@ Java 中堆外内存的分配方式有两种：**ByteBuffer#allocateDirect**和*
 
 #### 堆外内存的回收
 
+ DirectByteBuffer 对象有可能长时间存在于堆内内存，所以它很可能晋升到 JVM 的老年代，所以这时候 DirectByteBuffer 对象的回收需要依赖 Old GC 或者 Full GC 才能触发清理。如果长时间没有 Old GC 或者 Full GC 执行，那么堆外内存即使不再使用，也会一直在占用内存不释放，很容易将机器的物理内存耗尽。
 
+在使用 DirectByteBuffer 时，最好通过 JVM 参数 ` -XX:MaxDirectMemorySize` 定堆外内存的上限大小，当堆外内存的大小超过该阈值时，就会触发一次 Full GC 进行清理回收，如果在 Full GC 之后还是无法满足堆外内存的分配，那么程序将会抛出 OOM 异常。
 
-
+> 在 ByteBuffer.allocateDirect 分配的过程中，如果没有足够的空间分配堆外内存，在 Bits.reserveMemory 方法中也会主动调用 System.gc() 强制执行 Full GC，但是在生产环境一般都是设置了 -XX:+DisableExplicitGC，System.gc() 是不起作用的
 
