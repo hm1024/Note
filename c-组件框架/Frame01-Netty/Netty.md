@@ -91,7 +91,23 @@ NIO  提供了一个所以 I/O 操作的全异步的实现。它利用了基于�
 
 选择器运行在一个检查状态变化并且对其做出相应响应的线程上，在应用程序对状态的改变做出响应后，选择器会被重置，并将重复这个过程。
 
+![image-20210304231822022](images/Netty/image-20210304231822022.png)
 
+> **零拷贝**：零拷贝（zero-copy）是一种目前只有在使用 NIO  和 Epoll 传输时才可使用的特性。可以快速高效地将数据从文件系统移动到网络接口，而不需要将其从内核空间复制到用户空间。
+
+#### Epoll 用于Linux 的本地非阻塞传输
+
+在Linux 系统中，epoll 是一个高度可扩展的 I/O 时间通知特性，提供了比旧的POSIX select 和 poll 系统调用更好的性能。Linux JDK NIO API 使用了这些epoll 调用。
+
+#### OIO 旧的阻塞I/O
+
+#### 用于 JVM 内部通信的 Local 传输
+
+Netty 提供了一个 Local 传输，用于在一个 JVM 中运行的客户端和服务器程序间的异步通信。
+
+#### Embedded 传输
+
+Netty 提供了一种额外的传输，可以将 ChannelHandler 作为帮助器类嵌入到 其他的 ChannelHandler 内部。通过这种方式，可以扩展一个 ChannelHandler 的功能， 而又不需要修改其内部代码。
 
 ### 通信协议
 
@@ -305,6 +321,10 @@ LengthFieldBasedFrameDecoder 包含的属性
   > 示例 7 与 示例 6 的区别在于 Length 字段记录了整个报文的长度，包含 Length 自身所占字节、HDR1 、HDR2 以及 Content 字段的长度，解码器需要知道如何进行 lengthAdjustment 调整，才能得到 HDR2 和 Content 的内容
 
 ## Buffer  与 内存管理
+
+### ByteBuf
+
+网络传输的基本单位总是字节。
 
 ### Java 堆外内存
 
