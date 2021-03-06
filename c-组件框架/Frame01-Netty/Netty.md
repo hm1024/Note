@@ -324,7 +324,44 @@ LengthFieldBasedFrameDecoder 包含的属性
 
 ### ByteBuf
 
-网络传输的基本单位总是字节。
+网络传输的基本单位是字节，而NIO提供的ByteBuff存在缺陷。ByteBuffer 的内部结构：
+
+![Netty11(1).png](images/Netty/Ciqc1F-3ukmAImo_AAJEEbA2rts301.png)
+
+ByteBuffer 包含以下4个基本属性：
+
+* mark：为某个读取过的关键位置做标记，方便退回到该位置
+* position：当前读取的位置
+* limit：buffer 中有效的数据长度大小
+* capacity：初始化的空间容量
+
+以上四个基本属性的关系是： mark <= position <= limit <= capacity,ByteBufer 在使用上的一些缺陷
+
+1. ByteBuffer  分配的长度是固定的，无法动态扩容，所以很难控制要分配多大的容量。如果分配的容量太大，容易造成内存浪费；如果分配的太小，存放太大的数据会抛出 BufferOverflowException 异常，在使用ByteBuffer 时，为了避免容量不足的问题，必须在每次存放数据的时候对容量大小做校验，如果超出ByteBuffer 的最大容量，则需要重新开辟一个更大容量的 ByteBuffer，将已有的数据迁移过去。
+2. ByteBuffer 只能通过 position 获取当前可操作的位置，因为读写共用position 指正，所以需要频繁调用 flip、rewind 方法切换读写状态
+
+Netty 重新实现了一个性能更高、易用性更强的 ByteBuf，相比于 ByteBuffer 提供了很多非常酷的特性：
+
+* 容量可以动态扩展，类似于 StringBUffer
+* 读写采用不同的指针，读写模式可以随意切换，不需要调用 flip 方法
+* 通过内置的符合缓冲模型可以实现零拷贝
+* 支持引用计数
+* 支持缓存池
+
+**ByteBuf 内部结构**
+
+![Netty11（2）.png](images/Netty/CgqCHl-3uraAAhvwAASZGuNRMtA960.png)
+
+从图中可以看出，ByteBuf 包含三个指针：读指针 readerIndex、写指针 writeIndex、最大容量 maxCapacity，根据指针的位置又可以将 ByteBuf 内部结构可以分为四个部分：
+
+* 废弃字节，表是已经丢弃的无效字节数据
+* 可读字节：表示ByteBuf 中可以被读取的字节内容，可以通过 writeIndex - readIndex 计算得出，从 ByteBuf 读取 N 个字节，readIndex 就会自增 N，readIndex  不会大于 writeIndex，当readIndex == writeIndex 时，表示ByteBuf 已经不可读。
+* 可写字节：向 ByteBuf 中写入数据都会存储到可写字节区域。向 ByteBuf 写入 N 字节数据，writeIndex 就会自增 N，当 writeIndex 超过 capacity，表示 ByteBuf 容量不足，需要扩容。
+* 可扩容字节：表示 ByteBuf 最多还可以扩容多少字节，当 writeIndex 超过 capacity 时，会触发 ByteBuf 扩容，最多扩容到 maxCapacity 为止，超过 maxCapacity 再写入就会出错。
+
+###  零拷贝
+
+
 
 ### Java 堆外内存
 
