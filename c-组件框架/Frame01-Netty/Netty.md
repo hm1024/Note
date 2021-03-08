@@ -359,6 +359,22 @@ Netty 重新实现了一个性能更高、易用性更强的 ByteBuf，相比于
 * 可写字节：向 ByteBuf 中写入数据都会存储到可写字节区域。向 ByteBuf 写入 N 字节数据，writeIndex 就会自增 N，当 writeIndex 超过 capacity，表示 ByteBuf 容量不足，需要扩容。
 * 可扩容字节：表示 ByteBuf 最多还可以扩容多少字节，当 writeIndex 超过 capacity 时，会触发 ByteBuf 扩容，最多扩容到 maxCapacity 为止，超过 maxCapacity 再写入就会出错。
 
+### ByteBuf  的分类
+
+ByteBuf 有多重实现类，下图是 ByteBuf 的家族图谱，可以划分为是哪个不同的维度：**Head/Direct、Pooled/Unpooled 和 Unsafe/非 Unsafe**
+
+![img](images/Netty/Ciqc1F-3h3WAMF4CAAe4IOav4SA876.png)
+
+* **Head/Direct 就是对内和堆外内存**：Heap 指的是在 JVM 对内分配，底层依赖的数据结构是字节数据；Direct 则是堆外内存，不受 JVM 限制，分配方式依赖 JDK底层的 ByteBuffer
+* **Pooled/Unpooled 表示池化还是非池化内存**：Pooled 是从预先分配好的内存中取出，使用完全可以放回 ByteBuf 内存池，等待下一次分配。而 Unpooled 是直接调用系统 API 去申请内存，确保能够被 JVM GC 管理回收。
+* **Unsafe/非 Unsafe 的区别在于操作方式是否安全**：Unsafe 表示每次调用 JDK 的 Unsafe 对象操作物理内存，依赖 offset + index 的方式操作数据。非 Unsafe 则不需要依赖 JDK 的 Unsafe 对象，直接通过数组下标的方式操作数据
+
+### ByteBufAllocator
+
+ByteBufAllocator 内存分配类图
+
+![image-20210307183808945](images/Netty/image-20210307183808945.png)
+
 ###  零拷贝
 
 
