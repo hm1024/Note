@@ -2,7 +2,12 @@
 
 ## HTTP  协议相关概念
 
-**HTTP 协议(HyperText Transfer Protocol)**：超文本传输协议，从名字可以看出，它由 超文本、传输、协议三部分组成。
+**HTTP 协议(HyperText Transfer Protocol)**：一种无状态的、应用层的、以请求/应答方式运行的协议，它使用可扩展的语义和自描述消息格式，与基于网络的超文本信息系统灵活的互动。
+
+> RFC7230
+>  The Hypertext Transfer Protocol (HTTP) is a stateless application-level protocol for distributed, collaborative, hypertext information systems.  
+
+超文本传输协议，从名字可以看出，它由 超文本、传输、协议三部分组成。
 
 * 协议：HTTP 是一个用在计算机世界里的协议。它使用计算机能够理解的语言确立了一种计算机之间交流通信的规范，以及相关的各种控制和错误处理方式。
 
@@ -15,6 +20,17 @@
 * 超文本：就是“超越了普通文本的文本”，它是文字、图片、音频和视频等的混合体，最关键的是含有“超链接”，能够从一个“超文本”跳跃到另一个“超文本”，形成复杂的非线性、网状的结构关系。
 
   > 所谓“文本”（Text），就表示 HTTP 传输的不是 TCP/UDP 这些底层协议里被切分的杂乱无章的二进制包（datagram），而是完整的、有意义的数据，可以被浏览器、服务器这样的上层应用程序处理。
+
+> Web's major goal was to be a shared information space through which people and machines could communicate.		-- Berners-Lee
+
+**HTTP 解决了什么问题？**
+
+* 低门槛
+* 可扩展性：巨大的用户群体，超长的寿命
+* 分布式系统下的 Hypermedia：处理大数据的网络传输
+* Internet 规模
+  * 无法控制的 scalability
+  * 
 
 **HTTP 是一个在计算机世界里专门在两点之间传输文字、图片、音频、视频等超文本数据的约定和规范。**
 
@@ -30,7 +46,7 @@ URI的基本组成部分：协议名，主机名，路径。
 
 URI 另一个更常用的表现形式是 URL（Uniform Resource Locator）， 统一资源定位符，也就是我们俗称的“网址”，它实际上是 URI 的一个子集，差异不大，所以通常不会做严格的区分。
 
-## HTTP 报文
+## HTTP 协议格式
 
 HTTP的核心是：它传输的报文内容
 
