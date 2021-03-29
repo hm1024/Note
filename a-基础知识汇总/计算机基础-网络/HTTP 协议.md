@@ -356,10 +356,158 @@ URI 里只能使用 ASCII 码，编码直接把非 ASCII 码或特殊字符转�
 
 非ASCII码字符(例如中文)：建议先 UTF8 编码，在 US-ASCII 编码
 
-对URI合法字符，编码与不变吗是等价的。
+对URI合法字符，编码与不编码是等价的。
 
-## HTTP 优缺点
+### HTTP 头部解析
 
+> 客户端与服务器建立 HTTP 连接的常见流程
+
+![image-20210329223238688](images/HTTP 协议/image-20210329223238688.png)
+
+#### Connection 头部 (短链接与长连接)
+
+Connection 头部
+
+* Keep-Alive：客户端在请求头携带 Connection：Keep-Alive，表示客户端请求建立长连接; 服务端回复的响应头携带  Connection：Keep-Alive，表示服务器支持长连接
+
+* Close：短链接
+
+对代理服务器的要求：不转发 Connection 列出的头部，Connection 仅针对当前连接有效
+
+<img src="images/HTTP 协议/image-20210329223910587.png" alt="image-20210329223910587" style="zoom: 67%;" />
+
+代理服务器处理请求头中的 Connection 时，陈旧的代理服务器不识别该头部：退化为短连接，新版本的代理服务器理解该头部，与客户端建立长连接，与服务器使用 Connection 替代 Proxy-Connect 头部。
+
+#### Host 头部
+
+HTTP 1.0 中没有Host头部，HTTP1.0 所处的时代，域名相对较少，每一个服务器的IP地址仅对一个域名，当客户端与服务端建立连接后不需要考虑匹配每个域名对应服。但后IP地址(IPv4)不够用了，域名相对较多，因此HTTP1.1中引入了Host头部。
+
+Host = uri-host [ ":" port ]
+
+* HTTP/1.1 规范要求，不传递 Host 头部则返回 400 错误响应码
+
+* 为防止陈旧的代理服务器，发向正向代理的请求 request-target 必须以absolute-form 形式出现
+
+  request-line = method SP request-target SP HTTP-version CRLF
+
+  absolute-form = absolute-URI
+
+  *  absolute-URI = scheme ":" hier-part [ "?" query
+
+
+
+服务器接受到连接请求后，对HTTP消息路由和处理的常规流程。
+
+1. 建立 TCP 连接，确定服务器的 IP 地址
+2. 接收请求
+3. 寻找虚拟主机，匹配Host头部与域名
+4. 寻找 URI 的处理代码，匹配 URI
+5. 执行处理请求的代码，访问资源
+6. 生成HTTP响应，各中间件基于PF架构串行修改响应
+7. 发送HTTP响应
+8. 记录访问日志
+
+#### HTTP 请求上下文相关的头部
+
+##### 请求上下文
+
+**User-Agent**：指明客户端的类型信息，服务器可以据此对资源的表述做抉择
+
+* User-Agent = product *( RWS ( product / comment ) )
+  * product = token ["/" product-version]
+  * RWS = 1*( SP / HTAB ) 
+
+> 示例：
+>
+> * User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.104 Safari/537.36
+
+**Referer**:浏览器对来自某一页面的请求自动添加的头部
+
+* Referer = absolute-URI / partial-URI
+
+Referer 不会被添加的场景
+
+* 来源页面采用的协议为表示本地文件的 "file" 或者 "data" URI
+* 当前请求页面采用的是 http 协议，而来源页面采用的是 https 协议
+
+Referer 的用途：服务器端常用于统计分析、缓存优化、防盗链等功能
+
+**From**：主要用于网络爬虫，告诉服务器如何通过邮件联系到爬虫的负责人
+
+* From = mailbox
+
+  示例：From: webxiaoming@example.org
+
+##### 响应上下文
+
+**Server**：指明服务器上所用软件的信息，用于帮助客户端定位问题或者统计数据
+
+* Server = product *( RWS ( product / comment ) )
+
+  * product = token ["/" product-version]
+
+  示例：Server: nginx、Server: openresty/1.13.6.2
+
+**Allow**：告诉客户端，服务器上该 URI 对应的资源允许哪些方法的执行
+
+* Allow = #method
+
+  示例：Allow: GET, HEAD, PUT
+
+**Accept-Ranges**：告诉客户端服务器上该资源是否允许 range 请求
+
+* Accept-Ranges = acceptable-ranges
+
+  示例：Accept-Ranges: bytes 表示接受 Range请求、Accept-Ranges: none 表示不接受 range 请求
+
+### 内容协商
+
+每个 URI 指向的资源可以是任何事物，可以有多种不同的表述，例如一份文档可以有不同语言的翻译、不同的媒体格式、可以针对不同的浏览器提供不同的压缩编码等。
+
+内容协商的两种方式:
+
+* Proactive 主动式内容协商：指由客户端先在请求头部中提出需要的表述形式，而服务器根据这些请求头部提供特定的 representation 表述
+
+  ![image-20210329232555441](images/HTTP 协议/image-20210329232555441.png)
+
+  
+
+* Reactive 响应式内容协商：指服务器返回 300 Multiple Choices 或者 406 Not Acceptable，由客户端选择一种表述 URI 使用
+
+  <img src="images/HTTP 协议/image-20210329232516702.png" alt="image-20210329232516702"  />
+
+**常见的协商要素**
+
+* 质量因子 q：内容的质量、可接受类型的优先级
+* 媒体资源的 MIME 类型及质量因子
+  * Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+  * Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3
+* 字符编码：由于 UTF-8 格式广为使用， Accept-Charset 已被废弃 
+  * Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+* 内容编码：主要指压缩算法
+  * Accept-Encoding: gzip, deflate, br
+* 表述语言, （q 表示优先级）
+  * Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7
+  * Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2 
+
+**国际化与本地化**
+
+* internationalization（i18n，i 和 n 间有 18 个字符）
+
+  指设计软件时，在不同的国家、地区可以不做逻辑实现层面的修改便能够以不同的语言显示
+
+* localization（l10n，l 和 n 间有 10 个字符）
+
+  指内容协商时，根据请求中的语言及区域信息，选择特定的语言作为资源表述
+
+**资源表述的元数据头部**
+
+* 媒体类型、编码
+  * content-type: text/html; charset=utf-8
+* 内容编码
+  * content-encoding: gzip
+* 语言
+  * Content-Language: de-DE, en-CA
 
 
 # DNS 协议
