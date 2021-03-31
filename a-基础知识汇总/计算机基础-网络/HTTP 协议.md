@@ -362,7 +362,7 @@ URI 里只能使用 ASCII 码，编码直接把非 ASCII 码或特殊字符转�
 
 > 客户端与服务器建立 HTTP 连接的常见流程
 
-![image-20210329223238688](images/HTTP 协议/image-20210329223238688.png)
+<img src="images/HTTP 协议/image-20210329223238688.png" alt="image-20210329223238688"  />
 
 #### Connection 头部 (短链接与长连接)
 
@@ -380,11 +380,17 @@ Connection 头部
 
 #### Host 头部
 
-HTTP 1.0 中没有Host头部，HTTP1.0 所处的时代，域名相对较少，每一个服务器的IP地址仅对一个域名，当客户端与服务端建立连接后不需要考虑匹配每个域名对应服。但后IP地址(IPv4)不够用了，域名相对较多，因此HTTP1.1中引入了Host头部。
+HTTP 1.0 中没有Host头部，HTTP1.0 所处的时代，域名相对较少，每一个服务器的IP地址仅对一个域名，当客户端与服务端建立连接后不需要考虑匹配每个域名对应的服务。但后IP地址(IPv4)不够用了，而域名相对较多，因此HTTP1.1中引入了Host头部。
+
+Host 解决的是一台主机(一个ip),存在多个服务，通过host区分，不是通过端口区分的，host 是由HTTP服务器处理的，可参考
+
+> ` Tomcat: Server.xml <Engine> <Host> `
+
+**Host** 请求头指明了请求将要发送到的服务器主机名和端口号。
 
 Host = uri-host [ ":" port ]
 
-* HTTP/1.1 规范要求，不传递 Host 头部则返回 400 错误响应码
+* HTTP/1.1 规范要求，不传递 Host 头部，或传递多个 Host 头部，则返回 400 （Bad Request）响应码
 
 * 为防止陈旧的代理服务器，发向正向代理的请求 request-target 必须以absolute-form 形式出现
 
@@ -468,7 +474,7 @@ Referer 的用途：服务器端常用于统计分析、缓存优化、防盗链
 
 * Proactive 主动式内容协商：指由客户端先在请求头部中提出需要的表述形式，而服务器根据这些请求头部提供特定的 representation 表述
 
-  ![image-20210329232555441](images/HTTP 协议/image-20210329232555441.png)
+  <img src="images/HTTP 协议/image-20210329232555441.png" alt="image-20210329232555441"  />
 
   
 
@@ -508,6 +514,128 @@ Referer 的用途：服务器端常用于统计分析、缓存优化、防盗链
   * content-encoding: gzip
 * 语言
   * Content-Language: de-DE, en-CA
+
+### HTTP 包体数据传输
+
+请求或者响应都可以携带包体
+
+* HTTP-message = start-line *( header-field CRLF ) CRLF [ message-body ]
+  * message-body = *OCTET：二进制字节流
+
+以下消息是不能包含包体的
+
+* HEAD 方法请求对应的响应
+* 1xx、204、304 对应的响应
+* CONNECT 方法对应的 2xx 响应
+
+两种传输 HTTP 包体的方式
+
+* 发送 HTTP 消息时已能够确定包体的全部长度
+
+  使用 Content-Length 头部明确指明包体长度
+
+  * Content-Length = 1*DIGIT 
+
+    用 10 进制（不是 16 进制）表示包体中的字节个数，且必须与实际传输的包体长度一致
+
+  优点：接收段处理更简单
+
+* 发送 HTTP 消息时不能确定包体的全部长度
+
+  使用 Transfer-Encoding 头部指明使用 Chunk 传输方式，含 Transfer-Encoding 头部后 Content-Length 头部应被忽略
+
+  <img src="images/HTTP 协议/image-20210331221117198.png" alt="image-20210331221117198" style="zoom:80%;" />
+
+  **Trailer 头部的传输**
+
+  TE 头部：客户端在请求在声明是否接收 Trailer 头部 
+
+  * TE: trailers
+
+  Trailer 头部：服务器告知接下来 chunk 包体后会传输哪些 Trailer 头部
+
+  * Trailer: Date
+
+  以下头部不允许出现在 Trailer 的值中：
+
+  * 用于信息分帧的首部 (例如 Transfer-Encoding 和 Content-Length)
+  * 用于路由用途的首部 (例如 Host)
+  * 请求修饰首部 (例如控制类和条件类的，如 Cache-Control，Max-Forwards，或者 TE)
+  * 身份验证首部 (例如 Authorization 或者 Set-Cookie)
+  * Content-Encoding, Content-Type, Content-Range，以及 Trailer 自身
+
+  **优点：**
+
+  * 基于长连接持续推送动态内容
+  * 压缩体积较大的包体时，不必完全压缩完（计算出头部）再发送，可以边发送边压缩
+  * 传递必须在包体传输完才能计算出的 Trailer 头部
+
+**MIME**(Multipurpose Internet Mail Extensions)
+
+* content := "Content-Type" ":" type "/" subtype *(";" parameter)
+
+  * type := discrete-type / composite-type
+    * discrete-type := "text" / "image" / "audio" / "video" / "application" / extension-token
+    * composite-type := "message" / "multipart" / extension-token
+    * extension-token := ietf-token / x-token
+  * subtype := extension-token / iana-token
+  * parameter := attribute "=" value
+
+  大小写不敏感，但通常是小写
+
+  > 示例： Content-type: text/plain; charset="us-ascii“
+  >
+  > 完整类型参考：https://www.iana.org/assignments/media-types/media-types.xhtml
+
+**Content-Disposition 头部(RFC6266)**
+
+* disposition-type = "inline" | "attachment" | disp-ext-type
+
+  * inline：指定包体是以 inline 内联的方式，作为页面的一部分展示
+
+  * attachment：指定浏览器将包体以附件的方式下载
+
+    例如： Content-Disposition: attachment; filename=“filename.jpg”
+
+  * 在 multipart/form-data 类型应答中，可以用于子消息体部分
+
+    * 如 Content-Disposition: form-data; name="fieldName";
+      filename="filename.jpg"
+
+**HTML FORM 表单**
+
+HTML：HyperText Markup Language，结构化的标记语言（非编程语言）,浏览器可以将 HTML 文件渲染为可视化网页.
+
+FORM 表单：HTML 中的元素，提供了交互控制元件用来向服务器通过 HTTP 协议提交信息，常见控件有：
+
+• Text Input Controls：文本输入控件
+• Checkboxes Controls：复选框控件
+• Radio Box Controls ：单选按钮控件
+• Select Box Controls：下拉列表控件
+• File Select boxes：选取文件控件
+• Clickable Buttons：可点击的按钮控件
+• Submit and Reset Button：提交或者重置按钮控件
+
+HTML FORM 表单提交请求时的关键属性
+
+* action：提交时发起 HTTP 请求的 URI
+
+* method：提交时发起 HTTP 请求的 http 方法
+
+  * GET：通过 URI，将表单数据以 URI 参数的方式提交
+  * POST：将表单数据放在请求包体中提交
+
+* enctype：在 POST 方法下，对表单内容在请求包体中的编码方式
+
+  * application/x-www-form-urlencoded
+
+    数据被编码成以 ‘&’ 分隔的键-值对, 同时以 ‘=’ 分隔键和值，字符以 URL 编码方式编码
+
+  * multipart/form-data
+
+    * boundary 分隔符
+    * 每部分表述皆有HTTP头部描述子包体，例如 Content-Type
+    * last boundary 结尾
 
 
 # DNS 协议
