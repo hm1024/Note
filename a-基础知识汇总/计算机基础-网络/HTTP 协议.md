@@ -745,6 +745,8 @@ Range 请求的服务端响应码为，206 Partial Content，其包含的头部�
 
 RFC6265, HTTP State Management Mechanism
 
+HTTP 协议时无状态的，无状态代表 HTTP 服务器无法识别同一用户的多个请求，而通过 Cookie 可以用来识别用户，从而将多个特定的内容与用户身份联系起来。Cookie 可以在无状态的 HTTP 之上建立一个用户会话层。
+
 Cookie 是保存在客户端、由浏览器维护、表示应用状态的 HTTP 头部。
 
 * Cookie 可以存放在内存或折磁盘中
@@ -919,6 +921,115 @@ RFC 规范对浏览器使用 Cookie 的要求
 * Access-Control-Allow-Credentials：告知浏览器是否可以将 Credentials 暴露给客户端使用，Credentials 包含 cookie、authorization 类头部、TLS证书等。
 
 <img src="images/HTTP 协议/image-20210401231941406.png" alt="image-20210401231941406"  />
+
+### 条件请求&缓存
+
+**Precondition 条件请求**
+
+* 目的：由客户端携带条件判断信息，而服务器预执行条件验证成功后，再返回资源的表述
+
+* 常见的应用场景：
+
+  使缓存的更新更有效率（如 304 响应码使服务器不用传递包体）
+
+  断点续传时对内容的验证
+
+  当多个客户端并行修改同一资源时，防止某一客户端的更新被错误丢弃
+
+**强验证器与弱验证器的概念**
+
+**验证器** validator：根据客户端请求中携带的相关头部，以及服务器资源的信息，执行两端的资源验证
+
+* 强验证器：服务器上的资源表述只要有变动（例如版本更新或者元数据更新），那么以旧的验证头部访问一定会导致验证不过
+* 弱验证器：服务器上资源变动时，允许一定程度上仍然可以验证通过（例如一小段时间内仍然允许缓存有效）
+
+#### 验证器响应头部
+
+* **Etag** 响应头部：给出当前资源表述的标签
+
+  定义：
+
+  ETag = entity-tag
+  entity-tag = [ weak ] opaque-tag
+  weak = %x57.2F  (代表："W/" )
+  opaque-tag = DQUOTE *etagc DQUOTE
+  etagc = %x21 / %x23-7E / obs-text
+
+  示例：强验证器 ETag: "xyzzy"  
+
+  ​            弱验证器 ETag: W/"xyzzy"
+
+* **Last-Modified 响应头部**：表示对应资源表述的上次修改时间
+
+  定义：Last-Modified = HTTP-date
+
+  > 对比 Date 头部：Data = HTTP-date ，表示响应包体生成的时间
+  >
+  > Last-Modified 不能晚于 Date 的值
+
+#### 条件请求头部
+
+```
+If-Match = "*" / 1#entity-tag*
+If-None-Match = "*" / 1#entity-tag
+If-Modified-Since = HTTP-date
+If-Unmodified-Since = HTTP-date
+If-Range = entity-tag / HTTP-date
+```
+
+#### HTTP 缓存：为当前请求复用前请求的响应
+
+目标：减少时延；降低带宽消耗（可选而又必要）
+
+如果缓存没有过期，可以直接使用本地的缓存
+
+<img src="images/HTTP 协议/image-20210404152142953.png" alt="image-20210404152142953" style="zoom: 50%;" />
+
+
+
+如果缓存过期，则继续从服务器验证
+
+<img src="images/HTTP 协议/image-20210404152748442.png" alt="image-20210404152748442" style="zoom:50%;" />
+
+**私有缓存与共享缓存**
+
+私有缓存：仅供一个用户使用的缓存，通常只存在于如浏览器这样的客户端上
+
+共享缓存：可以供多个用户的缓存，存在于网络中负责转发消息的代理服务器（对热点资源常使用共享缓存，以减轻源服务器的压力，并提升网络效率）
+
+> • Authentication 响应不可被代理服务器缓存
+> • 正向代理
+> • 反向代理
+
+缓存实现示意图
+
+<img src="images/HTTP 协议/image-20210404153530157.png" alt="image-20210404153530157" style="zoom:80%;" />
+
+##### **判断缓存是否过期**
+
+通过 response_is_fresh  判断缓存是否过期
+
+response_is_fresh = (freshness_lifetime > current_age)
+
+* freshness_lifetime：按优先级，取以下响应头部的值 (s-maxage > max-age > Expires > 预估过期时间)
+
+  常见的预估时间：RFC7234 推荐：（DownloadTime– LastModified)*10%，常用浏览器对预估时间的处理逻辑如下图所示
+
+  <img src="images/HTTP 协议/image-20210404172620580.png" alt="image-20210404172620580" style="zoom:150%;" />
+
+* Age 头部及 current_age的计算
+
+  Age表示自源服务器发出响应（或者验证缓存过期），到使用缓存的响应发出时经过的秒数
+
+  > 对于代理服务器管理的共享缓存，客户端可以根据 Age 头部判断缓存时间
+  >
+  > Age = delta-seconds
+
+  ![image-20210404173111699](images/HTTP 协议/image-20210404173111699.png)
+
+代理服务器缓存中的 Age 头部
+
+<img src="images/HTTP 协议/image-20210404173444230.png" alt="image-20210404173444230" style="zoom:150%;" />
 
 
 
