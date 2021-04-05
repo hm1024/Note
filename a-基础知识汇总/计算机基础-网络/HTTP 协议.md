@@ -1055,7 +1055,60 @@ RFC7235，定义了一种基本的验证框架，被绝大部分浏览器所支�
 
 # DNS 协议
 
-DNS  协议可能会经历从操作系统、本地 DNS、根DNS、顶级 DNS、权威 DNS 的层层解析的过程。为避免每次都经历这个复杂繁琐的过程，这中间会存在DNS缓存。
+一个用于将人类可读的“域名”（例如 www.baidu.com）与服务器的IP地址（例如 110.242.68.4）进行映射的数据库。
+
+
+
+DNS 递归查询。DNS  协议可能会经历从操作系统、本地 DNS、根DNS、顶级 DNS、权威 DNS 的层层解析的过程。为避免每次都经历这个复杂繁琐的过程，这中间会存在DNS缓存。
+
+<img src="images/HTTP 协议/image-20210406000809646.png" alt="image-20210406000809646"  />
+
+## **DNS 报文：查询与响应**
+
+> dig 工具
+
+query：查询域名
+
+response：返回 IP 地址
+
+<img src="images/HTTP 协议/image-20210406000938335.png" alt="image-20210406000938335"  />
+
+请求中只会有 Questions，而响应中可能以下都包含
+
+<img src="images/HTTP 协议/image-20210406001003129.png" alt="image-20210406001003129" style="zoom:150%;" />
+
+**Questions 格式**
+
+QNAME 编码规则：以分隔为多段，每段字节数打头，单字节，前2比特必须为 00，只能表示 2^6-1=63 字节(对域名的限制)；以ASCII 编码每段字符；最后以 0 结尾。
+
+QTYPE 常用类型
+
+| 值   | 类型  | 意义           |
+| ---- | ----- | -------------- |
+| 1    | A     | IPv4地址       |
+| 2    | NS    | 权威域名服务器 |
+| 5    | CNAME | 别名           |
+| 15   | MX    | 邮件交换       |
+| 16   | TXT   | 文本字符串     |
+| 28   | AAAA  | IPv6 地址      |
+
+QCLASS：IN 表示 internet
+
+<img src="images/HTTP 协议/image-20210406001812683.png" alt="image-20210406001812683" style="zoom:80%;" />
+
+
+
+**Answer 格式**
+
+NAME：前2位为11，接引用 QNAME 偏移，在DNS 头部的字符偏移数
+
+TTL：Time to Live
+
+RDLENGTH：指明 RDATA 的长度
+
+RDATA：查询值，如 IP 地址，或者别名，别名遵循 QNAME 编码规则
+
+<img src="images/HTTP 协议/image-20210406002254267.png" alt="image-20210406002254267" style="zoom:80%;" />
 
 
 
