@@ -1031,7 +1031,27 @@ response_is_fresh = (freshness_lifetime > current_age)
 
 <img src="images/HTTP 协议/image-20210404173444230.png" alt="image-20210404173444230" style="zoom:150%;" />
 
+**Cache-Control 头部**
 
+### HTTP Tunnel 隧道
+
+HTTP Tunnel 隧道 用于通过 HTTP 连接传输非 HTTP 协议格式的消息，长用于穿越防火墙。建立隧道后，由于传输的并非 HTTP 消息，因此不在遵循请求/响应模式，已变成双向传输。
+
+
+
+### HTTP 协议的基本认证
+
+RFC7235，定义了一种基本的验证框架，被绝大部分浏览器所支持
+
+但HTTP 协议一般都是使用明文传输，如果不使用TLS/SSl 传输则会有安全问题
+
+认真请求
+
+<img src="images/HTTP 协议/image-20210405234800528.png" alt="image-20210405234800528"  />
+
+认证响应
+
+<img src="images/HTTP 协议/image-20210405234959774.png" alt="image-20210405234959774" style="zoom:80%;" />
 
 # DNS 协议
 
