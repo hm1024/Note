@@ -13,15 +13,17 @@ MRAppMaster 主要组成
 
 ```java
 RMCommunicator#startAllocatorThread() //
+    allocatorThread = new Thread(new AllocatorRunnable());
+    allocatorThread.setName("RMCommunicator Allocator");
     allocatorThread.start();
-	heartbeat();// yarn.app.mapreduce.am.scheduler.heartbeat.interval-ms=1000
-		getResources();// return AllocatedContainers
-			 makeRemoteRequest();// return response
-				scheduler.allocate(); // return allocateResponse 在这里通过与ResourceManager通过RPC交互
-		ScheduledRequests#assign(allocatedContainers);//
-		
-		preemptReducesIfNeeded();// 抢占reduce资源，用来执行Map 
-								 // availableMemForMap must be sufficient to run at least 1 map
+        heartbeat();// yarn.app.mapreduce.am.scheduler.heartbeat.interval-ms=1000
+            getResources();// return AllocatedContainers
+                 makeRemoteRequest();// return response
+                    scheduler.allocate(); // return allocateResponse 在这里通过与ResourceManager通过RPC交互
+            ScheduledRequests#assign(allocatedContainers);//
+
+            preemptReducesIfNeeded();// 抢占reduce资源，用来执行Map 
+                                     // availableMemForMap must be sufficient to run at least 1 map
 
 ```
 
