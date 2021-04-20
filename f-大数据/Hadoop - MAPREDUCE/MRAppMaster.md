@@ -7,6 +7,7 @@ MRAppMaster 主要组成
   * RMCommunicator
 * ContainerLauncher
 * TaskAttemptListener
+  * TaskHeartbeatHandler
 * Speculator
 
 ## MRAppMaster 的启动
@@ -264,4 +265,44 @@ RMCommunicator#startAllocatorThread() //
 RAMPDOWN_DIAGNOSTIC = "Reducer preempted "
       + "to make room for pending map attempts";
 ```
+
+
+
+
+
+## TaskAttemptListener
+
+该服务主要侦听 task 状态的更改。其包含一个子服务 TaskHeartbeatHandler, 主要追踪已启动的任务，确定任务是否仍在存活并且正在运行，如果长时间没有收到任务，则将其标记为已终止。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
