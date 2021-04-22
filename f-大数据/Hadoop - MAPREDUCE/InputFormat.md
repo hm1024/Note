@@ -4,20 +4,20 @@
 
 ### **InputFormat**
 
+<img src="images/InputFormat/7126254-348de605cbcf0bd8.png" alt="7126254-348de605cbcf0bd8"  />
+
 从InputFormat类图看，InputFormat抽象类仅有两个抽象方法：
 
 * List<InputSplit> getSplits()：根据输入文件计算出输入切片(InputSplit)，解决输入文件切片问题
 * RecordReader<K,V> createRecordReader()：创建 ResordReader,从 InputSplit 中读取数据，解决从切片中读取数据的问题
 
-在 调用 getSplits() 获取切片时，还会验证输入文件是否可分割、文件存储时分块的大小和文件大小等因素，通过 InputFormat，MapReduce 框架可以做到：
+在 调用 getSplits() 获取切片时，还会验证输入文件是否可分割、文件存储时分块的大小和文件大小等因素。此外切片是按输入文件 逻辑切片，而输入文件不会被物理分割成块。每个切片都是一个`<input-file-path,start,offset>`的元组。
 
-* 验证作业输入的正确性
-* 将输入文件切割成**逻辑分片**(InputSplit)，一个InputSplit将会被分配给一个独立的MapTask
-* 提供RecordReader实现，读取InputSplit中的`K-V对`供Mapper使用
+createRecordReader()方法是为给定的切片创建一个记录阅读器。在切片被使用之前先调用`RecordReader.initialize(InputSplit, TaskAttemptContext)`方法。
 
-<img src="images/InputFormat/7126254-348de605cbcf0bd8.png" alt="7126254-348de605cbcf0bd8"  />
 
-### FileInputFormat
+
+## FileInputFormat
 
 FileInputFormat 是所有基于文件的InputFormat的基类，指定数据文件所在的输入目录（或文件，输入既可以指定为目录，也可以指定为文件）。 FileInputFormat将读取所有文件并将这些文件分成一个或多个InputSplits。
 
