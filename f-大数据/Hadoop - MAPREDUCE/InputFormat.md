@@ -13,13 +13,48 @@
 
 在 调用 getSplits() 获取切片时，还会验证输入文件是否可分割、文件存储时分块的大小和文件大小等因素。此外切片是按输入文件 逻辑切片，而输入文件不会被物理分割成块。每个切片都是一个`<input-file-path,start,offset>`的元组。
 
-createRecordReader()方法是为给定的切片创建一个记录阅读器。在切片被使用之前先调用`RecordReader.initialize(InputSplit, TaskAttemptContext)`方法。
+Map 任务把输入分片传递给 InputFotmat 的 createRecordReader()方法来获得这个切片的RecordReader。RecordReader 类似迭代器，map 任务用一个 RecordReader 来生成记录的键-值对，然后再传递给 map 函数。从 Mapper 的 run() 方法中可以看到这块逻辑：
 
+> 运行 setup() 之后，再重复调用 Context 上的 nextKeyValue()(委托给 RecorReader 的同名的方法) 为 map 产生 键-值对象。通过 Content， 键/值 从 RecordReader 中检索出并传递给 map()　方法。当reader 读到 stream 的结尾时，nextKeyValue() 方法返回 false, map 任务运行其 cleanup() 方法，然后结束。
 
+```java
+  public void run(Context context) throws IOException, InterruptedException {
+    setup(context);
+    try {
+      while (context.nextKeyValue()) {
+        map(context.getCurrentKey(), context.getCurrentValue(), context);
+      }
+    } finally {
+      cleanup(context);
+    }
+  }
+```
 
 ## FileInputFormat
 
 FileInputFormat 是所有基于文件的InputFormat的基类，指定数据文件所在的输入目录（或文件，输入既可以指定为目录，也可以指定为文件）。 FileInputFormat将读取所有文件并将这些文件分成一个或多个InputSplits。
+
+FileInputFormat 分片大小的计算公式：
+
+```java
+max(minSize, Math.min(maxSize, blockSize))
+```
+
+在默认情况下：minSize < blockSize < maxSize
+
+### CombineFileInputFormat 
+
+CombineFileInputFormat  是针对小文件而设计的，根据一定的规则，将HDFS上多个小文件合并到一个 `InputSplit`中，然后会启用一个Map来处理这里面的文件，以此减少MR整体作业的运行时间。对于那些块放到同一个分片中，CombileFileInputFormat 会考虑节点和机架的因素，所以在典型的 MapReduce 作业处输入的速度并不会下降。
+
+> CombineFileInputFormat 为抽象类，使用时要用其子类
+
+* CombineTextInputFormat
+* CombineSequenceFileInputFormat
+* WholeFileInputFormat
+
+> 参考：
+> https://www.iteblog.com/archives/2139.html
+>  https://www.iteblog.com/archives/978.html
 
 ###  TextInputFormat:dart:
 
@@ -35,6 +70,8 @@ NLineInputFormat是TextInputFormat的另一种形式，将 N 行作业一个切�
 * Key - 行的字节偏移量
 * Value - 行的内容。
 
+可通过配置 mapreduce.input.lineinputformat.linespermap 指定 N 值，
+
 ### KeyValueTextInputFormat
 
 KeyValueTextInputFormat 与TextInputFormat类似，它也将每行输入视为单独的记录，但KeyValueTextInputFormat通过制表符`/t`将行本身分解为键和值。
@@ -42,23 +79,25 @@ KeyValueTextInputFormat 与TextInputFormat类似，它也将每行输入视为�
 * Key -  行首直到制表符
 * 制表符后的行剩余部分
 
+可通过 mapreduce.input.keyvaluelinerecordreader.key.value.separator 配置自定义分割符，
+
 ### SequenceFileInputFormat
 
 SequenceFileInputFormat是一个读取序列文件的InputFormat。序列文件是存储二进制键值对序列的二进制文件，序列文件是块压缩的，并提供几种任意数据类型（不仅仅是文本）的直接序列化和反序列化
 
 键和值都是用户自定义的
 
-### SequenceFileAsTextInputFormat
+#### SequenceFileAsTextInputFormat
 
 SequenceFileAsTextInputFormat 是 SequenceFileInputFormat 的另一种形式，它将序列文件键值转换为Text对象，通过调用`tostring()`转换是在键和值上执行的，这个InputFormat使序列文件适合输入流。
 
-### DBInputFormat
+### FixedLengthInputFormat
+
+FixedLengthInputFormat 用于从文件中读取固定宽度的二进制记录，这些记录没有用分隔符分开，必须通过 fixedlengthinputformat.record.length 设置每个记录的大小。
+
+## DBInputFormat
 
  DBInputFormat 使用JDBC从关系数据库中读取数据。
-
-
-
-
 
 
 
