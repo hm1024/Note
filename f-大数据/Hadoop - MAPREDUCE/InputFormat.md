@@ -46,6 +46,10 @@ max(minSize, Math.min(maxSize, blockSize))
 
 CombineFileInputFormat  是针对小文件而设计的，根据一定的规则，将HDFS上多个小文件合并到一个 `InputSplit`中，然后会启用一个Map来处理这里面的文件，以此减少MR整体作业的运行时间。对于那些块放到同一个分片中，CombileFileInputFormat 会考虑节点和机架的因素，所以在典型的 MapReduce 作业处输入的速度并不会下降。
 
+**切片逻辑：**
+
+将输入目录下所有文件大小，依次和设置的setMaxInputSplitSize 值比较，如果不大于设置的最大值，逻辑上划分一个块。如果输入文件大于设置的最大值且大于两倍，那么以最大值切割一块；当剩余数据大小超过设置的最大值且不大于最大值2 倍，此时将文件均分成2 个虚拟存储块（防止出现太小切片）。
+
 > CombineFileInputFormat 为抽象类，使用时要用其子类
 
 * CombineTextInputFormat
@@ -62,6 +66,8 @@ TextInputFormat 是MapReduce的默认InputFormat。TextInputFormat将每个输�
 
 * Key  - 是文件内行开头的字节偏移量（不是整个文件只是一个inputsplit），因此如果与文件名一起使用，它将是唯一的。
 * Value – 是该行的内容，不包括行结束符
+
+TextInputFormat切片 机制是 对 任务按文件规划切片 不管文件多小 都会是一个单独的切 片 都会交给一个 MapTask 这样如果有大量小文件 就 会 产生大量的MapTask 处理效率极其低下。
 
 ### NLineInputFormat
 
