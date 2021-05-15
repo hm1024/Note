@@ -59,7 +59,7 @@ HTTP的核心是：它传输的报文内容
 
 TCP 报文有 20 字节的头部数据，存储 TCP 协议必须的额外信息，例如发送方的端口、接受方的端口、包序号、标志位等等
 
-<img src="images/HTTP 协议/174bb72bad50127ac84427a72327f095.png" alt="img" style="zoom: 25%;" />
+<img src="https://gitee.com/minghai1024/my-image/raw/master/img/2021/20210515110814.png" alt="img" style="zoom: 25%;" />
 
 
 
@@ -73,7 +73,7 @@ HTTP 协议的请求报文和响应报文的结构基本相同，由三大部分
 
 HTTP 协议规定报文必须有 header，但可以没有 body，而且在 header 之后必须要有一个“空行”，也就是“CRLF”，十六进制的“0D0A”。一个完整的 HTTP 报文如下图所示：
 
-<img src="images/HTTP 协议/62e061618977565c22c2cf09930e1d3c.png" alt="img" style="zoom: 33%;" />
+<img src="https://gitee.com/minghai1024/my-image/raw/master/img/2021/20210515110845.png" alt="img" style="zoom: 33%;" />
 
 ### 请求行
 
