@@ -20,37 +20,37 @@ I/O 请求可以分为两个阶段，分别为调用阶段和执行阶段。
 
 * 第二个阶段为I/O 执行阶段。此时，内核等待 I/O 请求处理完成返回。该阶段分为两个过程：首先等待数据就绪，并写入内核缓冲区；随后将内核缓冲区数据拷贝至用户态缓冲区。
 
-![img](images/Netty/Ciqc1F-NAZ6Ae3bPAAHigveMsIQ514.png)
+![img](https://gitee.com/minghai1024/my-image/raw/master/img/2021/20210610195332.png)
 
  **Linux 的 5 种主要 I/O 模式**
 
 1.  同步阻塞 I/O（BIO）
 
-   <img src="images/Netty/CgqCHl-OnUKAeEELAAEnHU3FHGA343.png" alt="1.png" style="zoom: 67%;" />
+   <img src="https://gitee.com/minghai1024/my-image/raw/master/img/2021/20210610195225.png" alt="1.png" style="zoom: 67%;" />
 
    如上图所表现的那样，应用进程向内核发起 I/O 请求，发起调用的线程一直等待内核返回结果。一次完整的 I/O 请求称为BIO（Blocking IO，阻塞 I/O），所以 BIO 在实现异步操作时，只能使用多线程模型，一个请求对应一个线程。但是，线程的资源是有限且宝贵的，创建过多的线程会增加线程切换的开销。
 
 2. 同步非阻塞 I/O（NIO）
 
-   <img src="images/Netty/Ciqc1F-OnTeAFLNhAAFptS-OxRY266.png" alt="2.png" style="zoom:67%;" />
+   <img src="https://gitee.com/minghai1024/my-image/raw/master/img/2021/20210610195223.png" alt="2.png" style="zoom:67%;" />
 
    应用进程向内核发起 I/O 请求后不再会同步等待结果，而是会立即返回，通过轮询的方式获取请求结果。NIO 相比 BIO 虽然大幅提升了性能，但是轮询过程中大量的系统调用导致上下文切换开销很大。所以，单独使用非阻塞 I/O 时效率并不高，而且随着并发量的提升，非阻塞 I/O 会存在严重的性能浪费。
 
 3. I/O 多路复用
 
-   <img src="images/Netty/CgqCHl-OnV2ADXBhAAFUZ6oiz6U529.png" alt="3.png" style="zoom:67%;" />
+   <img src="https://gitee.com/minghai1024/my-image/raw/master/img/2021/20210610195222.png" alt="3.png" style="zoom:67%;" />
 
    多路复用实现了一个线程处理多个 I/O 句柄的操作。多路指的是多个数据通道，复用指的是使用一个或多个固定线程来处理每一个 Socket。select、poll、epoll 都是 I/O 多路复用的具体实现，线程一次 select 调用可以获取内核态中多个数据通道的数据状态。多路复用解决了同步阻塞 I/O 和同步非阻塞 I/O 的问题，是一种非常高效的 I/O 模型。
 
 4. 信号驱动 I/O
 
-   <img src="images/Netty/CgqCHl-OnWqAddLWAAFUtZ6YHDA683.png" alt="4.png" style="zoom:67%;" />
+   <img src="https://gitee.com/minghai1024/my-image/raw/master/img/2021/20210610195219.png" alt="4.png" style="zoom:67%;" />
 
    信号驱动 I/O 并不常用，它是一种半异步的 I/O 模型。在使用信号驱动 I/O 时，当数据准备就绪后，内核通过发送一个 SIGIO 信号通知应用进程，应用进程就可以开始读取数据了。
 
 5. 异步 I/O
 
-   <img src="images/Netty/Ciqc1F-OnXSAHOGVAACvxV3_3Mk188.png" alt="5.png" style="zoom:67%;" />
+   <img src="https://gitee.com/minghai1024/my-image/raw/master/img/2021/20210610195206.png" alt="5.png" style="zoom:67%;" />
 
    异步 I/O 最重要的一点是从内核缓冲区拷贝数据到用户态缓冲区的过程也是由系统异步完成，应用进程只需要在指定的数组中引用数据即可。
 
@@ -95,7 +95,7 @@ NIO  提供了一个所以 I/O 操作的全异步的实现。它利用了基于�
 
 选择器运行在一个检查状态变化并且对其做出相应响应的线程上，在应用程序对状态的改变做出响应后，选择器会被重置，并将重复这个过程。
 
-![image-20210304231822022](images/Netty/image-20210304231822022.png)
+![image-20210304231822022](https://gitee.com/minghai1024/my-image/raw/master/img/2021/20210610195231.png)
 
 > **零拷贝**：零拷贝（zero-copy）是一种目前只有在使用 NIO  和 Epoll 传输时才可使用的特性。可以快速高效地将数据从文件系统移动到网络接口，而不需要将其从内核空间复制到用户空间。
 
@@ -125,11 +125,11 @@ Netty 提供了一种额外的传输，可以将 ChannelHandler 作为帮助器�
 
 一个完备的网络协议需具备的基本要素：
 
-![image-20210227153334757](images/Netty/image-20210227153334757.png)
+![image-20210227153334757](https://gitee.com/minghai1024/my-image/raw/master/img/2021/20210610195237.png)
 
 #### Netty 中的通信协议
 
-![image-20210227161102754](images/Netty/image-20210227161102754.png)
+![image-20210227161102754](https://gitee.com/minghai1024/my-image/raw/master/img/2021/20210610195240.png)
 
 ### Netty 中支持的常用解码器
 
@@ -330,7 +330,7 @@ LengthFieldBasedFrameDecoder 包含的属性
 
 网络传输的基本单位是字节，而NIO提供的ByteBuff存在缺陷。ByteBuffer 的内部结构：
 
-![Netty11(1).png](images/Netty/Ciqc1F-3ukmAImo_AAJEEbA2rts301.png)
+![Netty11(1).png](https://gitee.com/minghai1024/my-image/raw/master/img/2021/20210610195246.png)
 
 ByteBuffer 包含以下4个基本属性：
 
@@ -354,7 +354,7 @@ Netty 重新实现了一个性能更高、易用性更强的 ByteBuf，相比于
 
 **ByteBuf 内部结构**
 
-![Netty11（2）.png](images/Netty/CgqCHl-3uraAAhvwAASZGuNRMtA960.png)
+![Netty11（2）.png](https://gitee.com/minghai1024/my-image/raw/master/img/2021/20210610195249.png)
 
 从图中可以看出，ByteBuf 包含三个指针：读指针 readerIndex、写指针 writeIndex、最大容量 maxCapacity，根据指针的位置又可以将 ByteBuf 内部结构可以分为四个部分：
 
@@ -367,7 +367,7 @@ Netty 重新实现了一个性能更高、易用性更强的 ByteBuf，相比于
 
 ByteBuf 有多重实现类，下图是 ByteBuf 的家族图谱，可以划分为是哪个不同的维度：**Head/Direct、Pooled/Unpooled 和 Unsafe/非 Unsafe**
 
-![img](images/Netty/Ciqc1F-3h3WAMF4CAAe4IOav4SA876.png)
+![img](https://gitee.com/minghai1024/my-image/raw/master/img/2021/20210610195252.png)
 
 * **Head/Direct 就是对内和堆外内存**：Heap 指的是在 JVM 对内分配，底层依赖的数据结构是字节数据；Direct 则是堆外内存，不受 JVM 限制，分配方式依赖 JDK底层的 ByteBuffer
 * **Pooled/Unpooled 表示池化还是非池化内存**：Pooled 是从预先分配好的内存中取出，使用完全可以放回 ByteBuf 内存池，等待下一次分配。而 Unpooled 是直接调用系统 API 去申请内存，确保能够被 JVM GC 管理回收。
@@ -377,7 +377,7 @@ ByteBuf 有多重实现类，下图是 ByteBuf 的家族图谱，可以划分为
 
 ByteBufAllocator 内存分配类图
 
-![image-20210307183808945](images/Netty/image-20210307183808945.png)
+![image-20210307183808945](https://gitee.com/minghai1024/my-image/raw/master/img/2021/20210610195256.png)
 
 ###  零拷贝
 
@@ -391,7 +391,7 @@ ByteBufAllocator 内存分配类图
 
 **堆外内存**与堆内内存相对应，对于整个机器内存而言，除**堆内内存以外部分即为堆外内存**，如下图所示。堆外内存不受 JVM 虚拟机管理，直接由操作系统管理。
 
-<img src="images/Netty/image-20210227234423838.png" alt="image-20210227234423838" style="zoom:67%;" />
+<img src="https://gitee.com/minghai1024/my-image/raw/master/img/2021/20210610195300.png" alt="image-20210227234423838" style="zoom:67%;" />
 
 堆外内存和堆内内存的利弊
 
@@ -440,7 +440,7 @@ Java 中堆外内存的分配方式有两种：**ByteBuffer#allocateDirect**和*
 
   在堆内存放的 DirectByteBuffer 对象并不大，仅仅包含堆外内存的地址、大小等属性，同时还会创建对应的 Cleaner 对象，通过 ByteBuffer 分配的堆外内存不需要手动回收，它可以被 JVM 自动回收。当堆内的 DirectByteBuffer 对象被 GC 回收时，Cleaner 就会用于回收对应的堆外内存。
 
-  <img src="images/Netty/image-20210227235344270.png" alt="image-20210227235344270" style="zoom: 80%;" />
+  <img src="https://gitee.com/minghai1024/my-image/raw/master/img/2021/20210610195303.png" alt="image-20210227235344270" style="zoom: 80%;" />
 
   从 DirectByteBuffer 的构造函数中可以看出，真正分配堆外内存的逻辑还是通过 unsafe.allocateMemory(size)
 
